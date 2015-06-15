@@ -3,6 +3,7 @@ require 'cgi'
 require 'shellwords'
 require 'open3'
 require 'yaml'
+require ENV['TM_SUPPORT_PATH'] + '/lib/escape.rb'
 
 module RSpec
   module Mate
@@ -39,6 +40,17 @@ module RSpec
         )
 
         run(options)
+      end
+      
+      def run_focussed_in_terminal
+        args = single_file + ":" + ENV['TM_LINE_NUMBER']
+        script = %{
+          tell application "Terminal"
+            activate
+            do script "cd #{e_as(e_sh(project_directory))} && bin/rspec #{e_as(e_sh(args))}"
+          end tell
+        }
+        open("|osascript", "w") { |io| io << script }
       end
 
       def run(options)
